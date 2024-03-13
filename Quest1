@@ -1,0 +1,384 @@
+
+https://cookbook_ao.g8way.io/welcome/testnet-info/index.html
+
+Update nodejs
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+source ~/.bashrc
+nvm install v20.11.1
+
+Install npm
+sudo apt install npm
+
+Install AOS Client
+npm i -g https://get_ao.g8way.io
+
+Run AOS client
+aos
+
+
+// Enter a chat
+// https://cookbook_ao.g8way.io/welcome/testnet-info/cred-and-quests.html
+
+Load chat handlers
+aos> .load-blueprint chat
+
+DevChat is a simple service that helps the ao community communicate as we build our new computer.
+The interface is simple. Run...
+
+                `List()` to see which rooms are available.
+                `Join("RoomName")` to join a room.
+                `Say("Msg"[, "RoomName"])` to post to a room (remembering your last choice for next time).
+                `Replay(["Count"])` to reprint the most recent messages from a chat.
+                `Leave("RoomName")` at any time to unsubscribe from a chat.
+                `Tip(["Recipient"])` to send a token from the chatroom to the sender of the last message.
+
+Join chat channel
+aos> Join("Quests", "AbrahamoLincolni")  // Use your own name/handler instead of AbrahamoLincolni
+
+Ask for quests
+aos> Say("/Quests")
+
+Quests
+
+QuestId Name                 CRED
+------- -------------------- ------------
+1       Begin                500.000
+2       Bots-and-Games       500.000
+3       Build-a-Bot          1000.000
+4       Build-Arena-Game     1500.000
+5       aos-UI               3000.000
+6       Discord-DevChat      3000.000
+7       Launch-a-MemeFrame   3420.000
+8       Orbit:Price-Feed-Bot 200.000 (OP)
+9       Orbit:News-Feed-Bot  500.000 (OP)
+
+
+Get info on a quest - the first one in our case
+aos> Say("/Quests:1", "Quests")
+
+<< Takes ages to get the response we see below. Just head to the URL for steps on how to complete this quest >>
+
+Name: Begin
+
+Description
+-----------
+In this fun exercise, you'll encounter a series of challenges presented by two familiar characters, Morpheus and Trinity. You'll dive deep into the rabbit hole guided by Morpheus as he presents you with a series of challenges to prove you're the one.
+
+Once you get last message from Trinity - She will send you the Quest Reward.
+
+
+Go to: https://cookbook_ao.g8way.io/tutorials/begin/index.html
+
+
+//// Quest 1 ////
+
+aos> Morpheus = "xLykCd1QtP3SB67Hr9DCCCkwHdatHS7bHVAr_yXXRrA"
+
+aos> Send({ Target = Morpheus, Data = "Morpheus?" })
+
+// List inbox
+aos> #Inbox
+
+// Show the message from Morpheus. We had 2 other messages in our inbox so it was the 3rd message, could be diff for you
+aos> Inbox[3].Data
+
+// Send a message with a tag and a handler (that's supposed to do something with that tagged message)
+aos> Send({ Target = Morpheus, Data = "Code: rabbithole", Action = "Unlock" })
+
+// Read the message
+aos> Inbox[4].Data
+
+then let us test your readiness. create a chatroom and send me an invite. we will continue to see if you are truly ready there.
+
+/// Create a chat room
+/// https://cookbook_ao.g8way.io/tutorials/begin/chatroom.html
+
+// Start vscode editor
+// Create new file called chatroom.lua
+
+// Enter code and save
+Members = Members or {}
+
+// Load chat room into AOS
+aos> .load chatroom.lua
+
+Loading...  chatroom.lua
+undefined
+
+// Check your list of members - should be empty
+aos> Members
+
+{  }
+
+// Add code to register
+
+-- Modify `chatroom.lua` to include a handler for `Members`
+-- to register to the chatroom with the following code:
+
+Handlers.add(
+    "Register",
+    Handlers.utils.hasMatchingTag("Action", "Register"),
+    function (msg)
+        table.insert(Members, msg.From)
+        Handlers.utils.reply("registered")(msg)
+    end
+)
+
+// Reload code change
+aos> .load chatroom.lua
+
+// Check to see if the register handler loaded with the following script:
+aos> Handlers.list
+
+{
+  {
+     name = "_eval",
+     pattern = function: 0x548330,
+     handle = function: 0x5b11d8
+  },
+  {
+     name = "_default",
+     pattern = function: 0x551258,
+     handle = function: 0x5b1218
+  },
+  {
+     name = "DevChat-Broadcasted",
+     pattern = function: 0x572f18,
+     handle = function: 0x572bd8
+  },
+  {
+     name = "DevChat-List",
+     pattern = function: 0x554698,
+     handle = function: 0x5473a0
+  },
+  {
+     name = "Register",
+     pattern = function: 0x5eaa78,
+     handle = function: 0x5ad508
+  }
+ }
+[0xGery#nHF@Getting-Started]> Have anyone able to join the game? (completing quest:2)
+
+// Register ourselves into the chat room
+aos> Send({ Target = ao.id, Action = "Register" })
+
+message added to outbox
+New Message From u9j...ZyE: Data = registered
+
+// See the message in the inbox saying we are registered
+aos> Inbox[5].Data
+
+registered
+
+// Check list of members
+aos> Members
+
+{ "u9j2DsLH4xSDyXgANjkpfN-oTEO1JzcvhhJ2w4I_ZyE" }
+
+
+// Create a handler that will allow you to broadcast messages to all members of the chatroom.
+
+  Handlers.add(
+    "Broadcast",
+    Handlers.utils.hasMatchingTag("Action", "Broadcast"),
+    function (msg)
+      for _, recipient in ipairs(Members) do
+        ao.send({Target = recipient, Data = msg.Data})
+      end
+      Handlers.utils.reply("Broadcasted.")(msg)
+    end
+  )  
+
+
+// Load change
+aos> .load chatroom.lua
+
+Loading...  chatroom.lua
+undefined
+
+// Test broadcast
+aos> Send({Target = ao.id, Action = "Broadcast", Data = "Broadcasting My 1st Message" })
+
+message added to outbox
+[kunyuk#QjQ@Getting-Started]> /Quests:1
+New Message From u9j...ZyE: Data = Broadcasted.
+New Message From u9j...ZyE: Data = Broadcasting My 1st
+
+// Invite Morpheus to join
+aos> Send({ Target = Morpheus, Action = "Join" })
+
+message added to outbox
+New Message From u9j...ZyE: Data = Good. Very Good.  No
+
+// Check inbox
+aos> Inbox[8].Data
+
+Good. Very Good.  Now, let me introduce you to Trinity.  Here is her process ID: kN-C1HGeMU4FJwOUEYsoAmhgBJYvzFucqkzFSh0rMoI. Once you have saved her process ID as you did mine, invite her to the chatroom, as well.
+
+// Check members
+aos> Members
+
+{ "u9j2DsLH4xSDyXgANjkpfN-oTEO1JzcvhhJ2w4I_ZyE", "xLykCd1QtP3SB67Hr9DCCCkwHdatHS7bHVAr_yXXRrA" }
+
+// Invite Trinity
+aos> Trinity = "kN-C1HGeMU4FJwOUEYsoAmhgBJYvzFucqkzFSh0rMoI"
+aos> Send({ Target = Trinity, Action = "Join" })
+aos> Inbox[9].Data
+
+So this is the one Morpheus has been going on about.  You may have impressed him by
+completing his challenge, but I am not so easily impressed.  I will be the judge of
+whether you are ready to see how far the rabbit hole goes.  Create a token; we'll be
+using it to tokengate this chatroom.  Do that, then I may be impressed.
+
+
+/// Create a token to gate access to this chat
+/// https://cookbook_ao.g8way.io/tutorials/begin/token.html
+
+aos> .load-blueprint token
+
+// Verify the handlers available
+aos> Handlers.list
+
+{
+  {
+     name = "_eval",
+     pattern = function: 0x548330,
+     handle = function: 0x608618
+  },
+  {
+     name = "_default",
+     pattern = function: 0x551258,
+     handle = function: 0x54cde0
+  },
+  {
+     name = "DevChat-Broadcasted",
+     pattern = function: 0x572f18,
+     handle = function: 0x572bd8
+  },
+  {
+     name = "DevChat-List",
+     pattern = function: 0x554698,
+     handle = function: 0x5473a0
+  },
+  {
+     name = "Register",
+     pattern = function: 0x5b1b28,
+     handle = function: 0x5b1e18
+  },
+  {
+     name = "Broadcast",
+     pattern = function: 0x5b1b88,
+     handle = function: 0x5b1b00
+  },
+  {
+     name = "info",
+     pattern = function: 0x5a1158,
+     handle = function: 0x55f498
+  },
+  {
+     name = "balance",
+     pattern = function: 0x55f588,
+     handle = function: 0x55f5e8
+  },
+  {
+     name = "balances",
+     pattern = function: 0x55f6b8,
+     handle = function: 0x55f718
+  },
+  {
+     name = "transfer",
+     pattern = function: 0x55f808,
+     handle = function: 0x55f868
+  },
+  {
+     name = "mint",
+     pattern = function: 0x55f8d0,
+     handle = function: 0x599848
+  }
+ }
+ 
+// Look at the token info
+aos> Send({ Target = ao.id, Action = "Info" })
+ 
+aos> Inbox[10].Data
+5642
+
+# Send some tokens to Trinity
+aos> Send({ Target = ao.id, Action = "Transfer", Recipient = Trinity, Quantity = "1000"})
+
+message added to outbox
+New Message From u9j...ZyE: Action = Debit-Notice
+New Message From u9j...ZyE: Data = Token received. Inte
+
+aos> Inbox[11].Data
+You transferred 1000 to kN-C1HGeMU4FJwOUEYsoAmhgBJYvzFucqkzFSh0rMoI
+
+// Trinity sends us a message she go the tokens
+aos> Inbox[12].Data
+
+Token received. Interesting. I wasn't sure you'd make it this far. I'm impressed, but we are not done yet.  I want you to use this token to tokengate the chatroom. Do that, and then I will believe you could be the one.
+
+
+/// Tokengating
+/// https://cookbook_ao.g8way.io/tutorials/begin/tokengating.html
+
+// Update the original chatroom.lua code and replace the Broadcast part with:
+
+Handlers.add(
+    "Broadcast",
+    Handlers.utils.hasMatchingTag("Action", "Broadcast"),
+    function(m)
+        if Balances[m.From] == nil or tonumber(Balances[m.From]) < 1 then
+            print("UNAUTH REQ: " .. m.From)
+            return
+        end
+        local type = m.Type or "Normal"
+        print("Broadcasting message from " .. m.From .. ". Content: " .. m.Data)
+        for i = 1, #Members, 1 do
+            ao.send({
+                Target = Members[i],
+                Action = "Broadcasted",
+                Broadcaster = m.From,
+                Data = m.Data
+            })
+        end
+    end
+)
+
+// Load chat
+aos> .load chatroom.lua
+
+--> Got lots of "[string "aos"]:1: unexpected symbol near '.'"
+--> Tried ".load-blueprint token" before doing ".load chatroom.lua" again and it worked
+
+aos> Send({ Target = ao.id , Action = "Broadcast", Data = "Hello" })
+message added to outbox
+Broadcasting message from u9j2DsLH4xSDyXgANjkpfN-oTEO1JzcvhhJ2w4I_ZyE. Content: Hello
+
+// Skipped verification from a diff process as it requires setting up another AOS client instance - not enough to run another process instance
+
+// Send message to Trinity it is done
+aos> Send({ Target = ao.id , Action = "Broadcast", Data = "It is done" })
+
+message added to outbox
+Broadcasting message from u9j2DsLH4xSDyXgANjkpfN-oTEO1JzcvhhJ2w4I_ZyE. Content: It is done
+Broadcasting message from kN-C1HGeMU4FJwOUEYsoAmhgBJYvzFucqkzFSh0rMoI. Content: I guess Morpheus was right. You are the one. Consider me impressed. You are now ready to join The Construct, an exclusive chatroom available to only those that have completed this tutorial. Now, go join the others by using the same tag you used `Register`, with this process ID: jg2Duezl68c8lHU5RiV8kHZrZ-7MJSVyyfQDhz5nJqQ. Good luck.
+
+aos> ConstructChatRoom = "jg2Duezl68c8lHU5RiV8kHZrZ-7MJSVyyfQDhz5nJqQ"
+aos> Send({ Target = ConstructChatRoom, Action = "Register" })
+
+message added to outbox
+New Message From jg2...JqQ: Data = registered
+
+aos> #Inbox
+17
+aos> Inbox[17].Data
+registered
+
+
+// Check CRED points balance
+aos> .load-blueprint credUtils
+aos> CRED.balance
+
+// Fill in this form for CRED points if you dont automatically receive them after some X (let's say 24hrs) amount of time
+https://docs.google.com/forms/d/e/1FAIpQLScIBsGxV2GEd37Kh0Yhi_beup0StdOAIoUlhzgLCr4D0K46fw/viewform
